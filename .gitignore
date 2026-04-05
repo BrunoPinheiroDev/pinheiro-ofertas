@@ -1,0 +1,9 @@
+# Pastas de Sistema
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Logs e Cache
+*.log
+error_log
+node_modules/
