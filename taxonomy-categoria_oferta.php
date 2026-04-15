@@ -1,7 +1,7 @@
 <?php 
 /**
  * Template para as Categorias de Ofertas
- * Status: Alinhado com o Design da Home e Busca
+ * Otimizado para SEO e Performance
  */
 get_header(); 
 ?>
@@ -16,7 +16,7 @@ get_header();
     </header>
 
     <section class="ofertas-lista">
-        <div class="ofertas-grid">
+        <div class=\"ofertas-grid\">
             <?php if (have_posts()) : while (have_posts()) : the_post(); 
                 $id = get_the_ID();
                 $preco_raw = get_post_meta($id, '_preco_produto', true);
@@ -25,18 +25,33 @@ get_header();
                 
                 $preco_display = ($preco_raw) ? number_format($preco_raw / 100, 2, ',', '.') : '---';
             ?>
-
+                
                 <div class="oferta-card">
-                    <div class="card-col-img">
-                        <a href="<?php the_permalink(); ?>" style="text-decoration:none; display:flex; justify-content:center;">
-                            <?php if (has_post_thumbnail()) the_post_thumbnail('medium'); ?>
-                        </a>
+                    <div class="card-img-col">
+                        <?php if (has_post_thumbnail()) : ?>
+                            <a href="<?php the_permalink(); ?>">
+                                <?php 
+                                // SEO e Performance: Imagens com ALT e Lazy Loading
+                                the_post_thumbnail('medium', [
+                                    'alt' => get_the_title(),
+                                    'loading' => 'lazy'
+                                ]); 
+                                ?>
+                            </a>
+                        <?php endif; ?>
                     </div>
-                    <div class="card-col-info">
+                    
+                    <div class="card-info-col">
                         <div class="tags-row">
-                            <?php if($loja): ?><span class="badge-loja"><?php echo esc_html($loja); ?></span><?php endif; ?>
+                            <?php if($loja): ?>
+                                <span class="badge-loja"><?php echo esc_html($loja); ?></span>
+                            <?php endif; ?>
                         </div>
-                        <h3><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h3>
+                        <h3 style="font-size: 0.95rem; margin: 5px 0; line-height: 1.2;">
+                            <a href="<?php the_permalink(); ?>" style="text-decoration: none; color: #222;">
+                                <?php the_title(); ?>
+                            </a>
+                        </h3>
                         
                         <?php if ($cupom) : ?>
                             <div class="cupom-wrapper" onclick="event.preventDefault(); copiarCupomCat('<?php echo esc_js($cupom); ?>', this)">
@@ -45,8 +60,9 @@ get_header();
                             </div>
                         <?php endif; ?>
                     </div>
+
                     <div class="card-col-action">
-                        <div class="preco-atual">R$ <?php echo $preco_display; ?></div>
+                        <div class=\"preco-atual\">R$ <?php echo $preco_display; ?></div>
                         <a href="<?php the_permalink(); ?>" class="btn-ver-oferta">Ver Detalhes</a>
                     </div>
                 </div>
@@ -54,7 +70,7 @@ get_header();
             <?php endwhile; else : ?>
                 <div style="text-align: center; padding: 60px 0; grid-column: 1 / -1;">
                     <p style="font-size: 18px; color: #666;">Ainda não temos ofertas nesta categoria. 😕</p>
-                    <a href="<?php echo home_url(); ?>" class="btn-ver-oferta" style="display: inline-block; margin-top: 20px;">Ver todas as ofertas</a>
+                    <a href="<?php echo home_url(); ?>" class=\"btn-ver-oferta\" style=\"display: inline-block; margin-top: 20px;\">Ver todas as ofertas</a>
                 </div>
             <?php endif; ?>
         </div>
@@ -63,6 +79,20 @@ get_header();
     <div class="paginacao" style="margin: 40px 0; text-align: center;">
         <?php echo paginate_links(); ?>
     </div>
+
 </main>
+
+<script>
+// Função de cópia consistente com as outras páginas
+function copiarCupomCat(texto, elemento) {
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(texto).then(() => {
+            const original = elemento.innerHTML;
+            elemento.innerHTML = '<span style=\"color: #27ae60; font-weight: bold;\">Copiado!</span>';
+            setTimeout(() => { elemento.innerHTML = original; }, 2000);
+        });
+    }
+}
+</script>
 
 <?php get_footer(); ?>

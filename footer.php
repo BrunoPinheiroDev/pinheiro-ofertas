@@ -23,7 +23,7 @@
         </div>
 
         <div class="footer-bottom">
-            <p>&copy; <?php echo date('Y'); ?> Pinheiro Ofertas. Todos os direitos reservados.</p>
+            <p>&copy; <?php echo date('Y'); ?> Ofertas Pinheiro. Todos os direitos reservados.</p>
         </div>
     </div>
 </footer>

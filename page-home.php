@@ -3,6 +3,10 @@
 <main class="container site-main-home">
   
   <section class="header-navegacao">
+        <h1 style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;">
+            Pinheiro Ofertas - Melhores Promoções de Tecnologia e Eletrônicos Selecionadas Manualmente
+        </h1>
+
         <div class="busca-global-wrapper">
             <form role="search" method="get" class="search-form-produtos" action="<?php echo home_url('/'); ?>">
                 <div class="input-group">
@@ -26,26 +30,18 @@
                 
                 <?php
                 $termos = get_terms(array('taxonomy' => 'categoria_oferta', 'hide_empty' => false, 'orderby' => 'count', 'order' => 'DESC'));
-                if (!empty($termos) && !is_wp_error($termos)) {
-                    foreach ($termos as $termo) {
-                        $is_active = ($cat_atual == $termo->slug) ? 'active' : '';
-                        echo '<a href="?categoria=' . $termo->slug . '" class="cat-pill ' . $is_active . '" data-name="' . strtolower($termo->name) . '">' . $termo->name . '</a>';
-                    }
-                }
+                foreach ($termos as $termo) :
+                    $active = ($cat_atual == $termo->slug) ? 'active' : '';
+                    echo '<a href="' . esc_url(get_term_link($termo)) . '" class="cat-pill ' . $active . '" data-name="' . esc_attr($termo->slug) . '">' . esc_html($termo->name) . '</a>';
+                endforeach;
                 ?>
             </div>
         </div>
   </section>
 
-  <section class="banner-transparencia">
-      <div class="banner-content">
-          <p><strong>Aviso importante:</strong> As ofertas são encontradas em tempo real e os estoques são limitados. A loja varejista pode alterar os preços a qualquer momento!</strong></p>
-      </div>
-  </section>
-
   <?php if (!get_search_query() && empty($cat_atual)) : ?>
   <section class="ofertas-destaque-topo" style="margin-top: 20px;">
-      <h2 class="titulo-secao" style="font-size: 20px; font-weight: 800; margin-bottom: 20px;">Super Ofertas</h2>
+      <h2 class="titulo-secao" style="font-size: 20px; font-weight: 800; margin-bottom: 20px; color: #1A4D3E; border-bottom: 2px solid #1A4D3E; padding-bottom: 10px;">Super Ofertas</h2>
       <div class="destaques-grid-topo">
           <?php
           $destaques = new WP_Query(array(
@@ -57,10 +53,16 @@
           if ($destaques->have_posts()) : while ($destaques->have_posts()) : $destaques->the_post();
               $preco_d = get_post_meta(get_the_ID(), '_preco_produto', true);
               $loja_d  = get_post_meta(get_the_ID(), '_nome_loja', true);
-              // ALTERADO: Usando permalink para ir para página interna
           ?>
             <a href="<?php the_permalink(); ?>" class="card-destaque-v">
-                <div class="d-img"><?php if (has_post_thumbnail()) the_post_thumbnail('medium'); ?></div>
+                <div class="d-img">
+                    <?php if (has_post_thumbnail()) {
+                        the_post_thumbnail('medium', [
+                            'alt' => get_the_title(),
+                            'loading' => 'lazy'
+                        ]);
+                    } ?>
+                </div>
                 <div class="d-info">
                     <?php if($loja_d): ?><span class="badge-loja"><?php echo esc_html($loja_d); ?></span><?php endif; ?>
                     <h3 style="font-size: 15px; margin: 10px 0;"><?php the_title(); ?></h3>
@@ -72,51 +74,49 @@
   </section>
   <?php endif; ?>
 
-  <section class="ofertas-lista">
-    <?php if (get_search_query()) : ?>
-        <p class="resultado-aviso">Resultados para: <strong>"<?php echo get_search_query(); ?>"</strong></p>
-    <?php endif; ?>
+  <section class="ofertas-recentes" style="margin-top: 40px;">
+    <h2 style="color: #1A4D3E; font-size: 20px; font-weight: 800; margin-bottom: 20px; border-bottom: 2px solid #1A4D3E; padding-bottom: 10px;">
+        Ofertas Selecionadas
+    </h2>
 
     <div class="ofertas-grid">
-      <?php
+      <?php 
+      $paged = ( get_query_var( 'paged' ) ) ? get_query_var( 'paged' ) : 1;
       $args = array(
-        'post_type'      => 'pinheiro_oferta',
-        'posts_per_page' => 20,
-        's'              => get_search_query(),
-        'meta_key'       => '_preco_produto',
-        'orderby'        => 'meta_value_num',
-        'order'          => 'ASC'
+          'post_type'      => 'pinheiro_oferta',
+          'posts_per_page' => 12,
+          'paged'          => $paged
       );
-
-      if (!empty($cat_atual)) {
-          $args['tax_query'] = array(array('taxonomy' => 'categoria_oferta', 'field' => 'slug', 'terms' => $cat_atual));
-      }
-
-      $ofertas = new WP_Query($args);
-
-      if ($ofertas->have_posts()) :
-        while ($ofertas->have_posts()) : $ofertas->the_post();
-          $id = get_the_ID();
-          $preco_raw = get_post_meta($id, '_preco_produto', true);
-          $tipo_pgto = get_post_meta($id, '_tipo_pagamento', true); 
-          $condicoes = get_post_meta($id, '_condicoes_pagamento', true);
-          $loja      = get_post_meta($id, '_nome_loja', true);
-          $cupom     = get_post_meta($id, '_cupom_oferta', true);
-          
-          $preco_display = ($preco_raw) ? number_format($preco_raw / 100, 2, ',', '.') : '';
+      
+      $query = new WP_Query($args);
+      
+      if ($query->have_posts()) : 
+          while ($query->have_posts()) : $query->the_post(); 
+            $id = get_the_ID();
+            $preco_raw = get_post_meta($id, '_preco_produto', true);
+            $loja      = get_post_meta($id, '_nome_loja', true);
+            $cupom     = get_post_meta($id, '_cupom_oferta', true);
+            $preco_display = ($preco_raw) ? number_format($preco_raw / 100, 2, ',', '.') : '---';
       ?>
-
+        
         <div class="oferta-card">
-            <div class="card-col-img">
-                <a href="<?php the_permalink(); ?>" style="text-decoration:none; display:flex; justify-content:center;">
-                  <?php if (has_post_thumbnail()) the_post_thumbnail('medium'); ?>
-                </a>
+            <div class="card-img-col">
+                <?php if (has_post_thumbnail()) : ?>
+                    <a href="<?php the_permalink(); ?>">
+                        <?php the_post_thumbnail('medium', [
+                            'alt' => get_the_title(),
+                            'loading' => 'lazy'
+                        ]); ?>
+                    </a>
+                <?php endif; ?>
             </div>
-            <div class="card-col-info">
+            <div class="card-info-col">
                 <div class="tags-row">
                     <?php if($loja): ?><span class="badge-loja"><?php echo esc_html($loja); ?></span><?php endif; ?>
                 </div>
-                <h3><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h3>
+                <h3 style="font-size: 0.95rem; margin: 5px 0; line-height: 1.2;">
+                    <a href="<?php the_permalink(); ?>" style="text-decoration: none; color: #222;"><?php the_title(); ?></a>
+                </h3>
                 
                 <?php if ($cupom) : ?>
                     <div class="cupom-wrapper" onclick="event.preventDefault(); copiarCupom('<?php echo esc_js($cupom); ?>', this)">
@@ -132,7 +132,9 @@
         </div>
 
       <?php endwhile; wp_reset_postdata(); ?>
-      <?php else : ?><p>Nenhuma oferta encontrada.</p><?php endif; ?>
+      <?php else : ?>
+        <p style="grid-column: 1/-1; text-align: center; padding: 40px;">Aguardando novas ofertas incríveis... 🌲</p>
+      <?php endif; ?>
     </div>
   </section>
 </main>
@@ -144,7 +146,7 @@ function filtrarCategorias() {
     var pills = document.getElementsByClassName("cat-pill");
     for (var i = 0; i < pills.length; i++) {
         var txtValue = pills[i].getAttribute("data-name") || "";
-        pills[i].style.display = (txtValue.indexOf(filter) > -1) ? "" : "none";
+        pills[i].style.display = (txtValue.toLowerCase().indexOf(filter) > -1) ? "" : "none";
     }
 }
 </script>

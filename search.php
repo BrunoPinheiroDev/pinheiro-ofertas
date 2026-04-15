@@ -1,7 +1,7 @@
 <?php 
 /**
  * Template para Resultados de Busca - Pinheiro Ofertas
- * Status: Layout idêntico à Home (Grid de 3 colunas)
+ * Otimizado para SEO e Performance
  */
 get_header(); 
 ?>
@@ -11,7 +11,7 @@ get_header();
     <header class="search-header" style="margin-bottom: 40px; border-bottom: 2px solid #1A4D3E; padding-bottom: 15px;">
         <h1 style="color: #1A4D3E; font-size: 24px; font-weight: 800; margin: 0;">
             <span style="color: #888; font-size: 16px; font-weight: 400; text-transform: uppercase;">Resultados para:</span> 
-            "<?php echo get_search_query(); ?>"
+            "<?php echo esc_html(get_search_query()); ?>"
         </h1>
     </header>
 
@@ -25,19 +25,33 @@ get_header();
                 
                 $preco_display = ($preco_raw) ? number_format($preco_raw / 100, 2, ',', '.') : '---';
             ?>
-
+                
                 <div class="oferta-card">
-                    <div class="card-col-img">
-                        <a href="<?php the_permalink(); ?>" style="text-decoration:none; display:flex; justify-content:center;">
-                            <?php if (has_post_thumbnail()) the_post_thumbnail('medium'); ?>
-                        </a>
+                    <div class="card-img-col">
+                        <?php if (has_post_thumbnail()) : ?>
+                            <a href="<?php the_permalink(); ?>">
+                                <?php 
+                                // SEO e Performance: Imagens com ALT e Lazy Loading
+                                the_post_thumbnail('medium', [
+                                    'alt' => get_the_title(),
+                                    'loading' => 'lazy'
+                                ]); 
+                                ?>
+                            </a>
+                        <?php endif; ?>
                     </div>
                     
-                    <div class="card-col-info">
+                    <div class="card-info-col">
                         <div class="tags-row">
-                            <?php if($loja): ?><span class="badge-loja"><?php echo esc_html($loja); ?></span><?php endif; ?>
+                            <?php if($loja): ?>
+                                <span class="badge-loja"><?php echo esc_html($loja); ?></span>
+                            <?php endif; ?>
                         </div>
-                        <h3><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h3>
+                        <h3 style="font-size: 0.95rem; margin: 5px 0; line-height: 1.2;">
+                            <a href="<?php the_permalink(); ?>" style="text-decoration: none; color: #222;">
+                                <?php the_title(); ?>
+                            </a>
+                        </h3>
                         
                         <?php if ($cupom) : ?>
                             <div class="cupom-wrapper" onclick="event.preventDefault(); copiarCupomBusca('<?php echo esc_js($cupom); ?>', this)">
@@ -55,7 +69,7 @@ get_header();
 
             <?php endwhile; else : ?>
                 <div style="text-align: center; padding: 60px 20px; grid-column: 1 / -1;">
-                    <p style="font-size: 20px; color: #666;">Putz, não encontramos nada para "<strong><?php echo get_search_query(); ?></strong>". 😕</p>
+                    <p style="font-size: 20px; color: #666;">Putz, não encontramos nada para "<strong><?php echo esc_html(get_search_query()); ?></strong>". 😕</p>
                     <p style="margin-bottom: 30px;">Que tal tentar outro termo ou voltar para o início?</p>
                     <a href="<?php echo home_url(); ?>" class="btn-ver-oferta" style="display: inline-block;">Ver todas as ofertas</a>
                 </div>
@@ -70,8 +84,9 @@ get_header();
 </main>
 
 <script>
+// Mantendo sua função de copiar com segurança
 function copiarCupomBusca(texto, elemento) {
-    if (navigator.clipboard) {
+    if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(texto).then(() => {
             const original = elemento.innerHTML;
             elemento.innerHTML = '<span style="color: #27ae60; font-weight: bold;">Copiado!</span>';
